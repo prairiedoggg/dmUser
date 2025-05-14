@@ -1,0 +1,41 @@
+# kubernetes/dmuser.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dmuser-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dmuser
+  template:
+    metadata:
+      labels:
+        app: dmuser
+    spec:
+      containers:
+      - name: user-api
+        image: dmuser # Skaffold가 빌드할 이미지 이름
+        ports:
+        - containerPort: 3001 # 실제 dmUser 포트로 변경
+        env:
+        - name: DATABASE_URL
+          value: "postgresql://user:password@postgres:5432/dreamin_db" # PostgreSQL 서비스 정보
+        - name: REDIS_HOST
+          value: "redis"
+        - name: REDIS_PORT
+          value: "6379"
+        # JWT_SECRET 등은 Secret 사용 권장
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-api # Frontend 등에서 이 이름으로 접근
+spec:
+  selector:
+    app: dmuser
+  ports:
+  - protocol: TCP
+    port: 3001 # 서비스 포트 (컨테이너 포트와 같게 설정)
+    targetPort: 3001
+  type: ClusterIP

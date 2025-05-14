@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dmuser.fullname" . }}
+  labels:
+    {{- include "dmuser.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "dmuser.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "dmuser.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "dmuser.serviceAccountName" . }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          env:
+            {{- if .Values.env }}
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $value.name }}
+              value: {{ $value.value | quote }}
+            {{- end }}
+            {{- end }}
+            {{- if and .Values.secrets .Values.secrets.supabaseCredentials .Values.secrets.supabaseUrlKey }}
+            - name: SUPABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.supabaseCredentials }}
+                  key: {{ .Values.secrets.supabaseUrlKey }}
+            {{- end }}
+            {{- if and .Values.secrets .Values.secrets.jwtSecrets .Values.secrets.jwtSecretKey }}
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.jwtSecrets }}
+                  key: {{ .Values.secrets.jwtSecretKey }}
+            {{- end }}
+          resources:
+            {{- if .Values.resources }}
+            {{- toYaml .Values.resources | nindent 12 }}
+            {{- else }}
+            {}
+            {{- end }}

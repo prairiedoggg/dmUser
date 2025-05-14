@@ -21,6 +21,20 @@ export class SocialProfileDto {
   @IsOptional()
   @IsString()
   image?: string;
+
+  @IsOptional()
+  @IsString()
+  provider?: AuthProvider;
+
+  @IsOptional()
+  @IsString()
+  birth?: string;
+
+  @IsOptional()
+  @IsString()
+  job?: string;
+  
+  
 }
 
 /**

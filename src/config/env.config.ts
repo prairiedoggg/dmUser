@@ -1,3 +1,5 @@
+import { ConfigService, registerAs } from '@nestjs/config';
+
 /**
  * 환경 설정
  */
@@ -64,11 +66,11 @@ export const productionConfig: EnvironmentConfig = {
  * 테스트 환경 설정
  */
 export const testConfig: EnvironmentConfig = {
-  nodeEnv: 'test',
-  port: 3002,
+  nodeEnv: 'development',
+  port: 3001,
   supabase: {
-    url: 'http://localhost:54321',
-    key: 'test-supabase-key',
+    url: 'https://qpiieojgaahoaqxxqngs.supabase.co',
+    key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwaWllb2pnYWFob2FxeHhxbmdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ1NDg4MjMsImV4cCI6MjA2MDEyNDgyM30.bqU9bktHTKTJ-6Yrr7hM-s0FCZ7NkoATYK6KJQ1tR14',
   },
   jwt: {
     secret: 'test-jwt-secret',
@@ -88,9 +90,51 @@ export const getConfig = (): EnvironmentConfig => {
   switch (nodeEnv) {
     case 'production':
       return productionConfig;
-    case 'test':
-      return testConfig;
+    case 'development':
+      return developmentConfig;
     default:
       return developmentConfig;
   }
-}; 
+};
+
+// Re-add and export the interfaces
+export interface SupabaseConfig {
+  url: string;
+  key: string;
+}
+
+export interface JwtConfig {
+  secret: string;
+  expiresIn: string;
+}
+
+export interface CorsConfig {
+  allowedOrigins: string[];
+}
+
+// Define configuration namespaces using registerAs
+// This makes configuration type-safe and injectable
+
+export const appConfig = registerAs('app', () => ({
+  nodeEnv: process.env.NODE_ENV || 'development',
+  port: parseInt(process.env.PORT || '3001', 10),
+}));
+
+export const supabaseConfiguration = registerAs('supabase', (): SupabaseConfig => ({
+  url: process.env.SUPABASE_URL || '', // ConfigModule populates process.env before this factory runs
+  key: process.env.SUPABASE_KEY || '',
+}));
+
+export const jwtConfiguration = registerAs('jwt', (): JwtConfig => ({
+  secret: process.env.JWT_SECRET || 'default-jwt-secret', // Provide a default for safety
+  expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+}));
+
+export const corsConfiguration = registerAs('cors', (): CorsConfig => ({
+  allowedOrigins: (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
+    .split(',')
+    .map((origin) => origin.trim()),
+}));
+
+// developmentConfig, productionConfig, testConfig, and getConfig are no longer needed
+// ConfigModule handles loading based on env files, and registerAs provides typed access 

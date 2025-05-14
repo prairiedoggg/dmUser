@@ -1,0 +1,41 @@
+# Production environment values
+replicaCount: 1
+
+image:
+  repository: dmuser
+  pullPolicy: IfNotPresent
+  tag: ""
+
+# 서비스 계정 설정 - 생성하지 않고 default 사용
+serviceAccount:
+  create: false
+  name: "default"
+
+service:
+  type: ClusterIP
+  port: 3001
+
+# 기본 환경 변수만 유지
+env:
+  # 기본 환경 변수
+  # 서버 설정
+  name: PORT
+  value: 3001
+  name: NODE_ENV
+  value: development
+
+# Supabase 설정
+  name: SUPABASE_URL
+  value: https://your-project-id.supabase.co
+  name: SUPABASE_KEY
+  value: your-supabase-anon-key-here
+
+# JWT 설정
+  name: JWT_SECRET
+  value: your-jwt-secret-key-here
+  name: JWT_EXPIRES_IN
+  value: 7d
+
+# CORS 설정
+  name: ALLOWED_ORIGINS
+  value: http://localhost:3000,https://yourdomain.com 

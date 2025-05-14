@@ -1,0 +1,53 @@
+replicaCount: 1
+
+image:
+  repository: dmuser
+  pullPolicy: IfNotPresent
+  tag: ""
+
+# 서비스 계정 설정 - 생성하지 않고 default 사용
+serviceAccount:
+  create: false
+  name: "default"
+
+service:
+  type: NodePort
+  port: 3001
+  # nodePort: 30007 # 특정 NodePort를 사용하고 싶다면 이 줄의 주석을 해제하고 원하는 포트 (30000-32767 사이)로 변경
+
+# --- 추가: Ingress 설정 ---
+ingress:
+  enabled: false # 기본적으로는 비활성화, 필요시 true로 변경하여 사용
+  # className: "traefik" # k3s는 보통 기본 IngressClass가 Traefik이므로 명시 안해도 될 수 있음
+  annotations: {}
+    # traefik.ingress.kubernetes.io/router.entrypoints: websecure # HTTPS 사용 시
+    # traefik.ingress.kubernetes.io/router.tls: "true"
+  hosts:
+    - host: dmuser.local.nip.io # 예시 호스트명, 실제 환경에 맞게 변경
+      paths:
+        - path: / # 기본 경로
+          pathType: Prefix # Kubernetes v1.18+ 에서 권장
+          # 만약 특정 prefix를 사용하고 싶다면 (예: /api/dmuser)
+          # path: /api/dmuser 
+          # stripPrefix: true # 아래 templates/ingress.yaml 에서 이 값을 사용하도록 설정 필요
+  # tls: [] # HTTPS 사용 시 주석 해제하고 설정
+  #  - secretName: dmuser-tls-secret
+  #    hosts:
+  #      - dmuser.local.nip.io
+
+# 기본 환경 변수만 유지
+env:
+  - name: PORT
+    value: "3001"
+  - name: NODE_ENV
+    value: "development"
+  - name: SUPABASE_URL
+    value: "https://qpiieojgaahoaqxxqngs.supabase.co"
+  - name: SUPABASE_KEY
+    value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwaWllb2pnYWFob2FxeHhxbmdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ1NDg4MjMsImV4cCI6MjA2MDEyNDgyM30.bqU9bktHTKTJ-6Yrr7hM-s0FCZ7NkoATYK6KJQ1tR14"
+  - name: JWT_SECRET
+    value: "your-jwt-secret-key-here"
+  - name: JWT_EXPIRES_IN
+    value: "7d"
+  - name: ALLOWED_ORIGINS
+    value: "http://localhost:3000,https://yourdomain.com" 

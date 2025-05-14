@@ -1,32 +1,30 @@
+import 'reflect-metadata'; // Must be the first import
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
-import { getConfig } from './config/env.config';
+import { ConfigService } from '@nestjs/config';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'; // Import Swagger classes
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const config = getConfig();
-  
-  // 글로벌 유효성 검사 파이프 설정
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
 
-  // CORS 설정
-  app.enableCors({
-    origin: config.cors.allowedOrigins,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    credentials: true,
-  });
+  // Swagger (OpenAPI) Document Setup
+  const config = new DocumentBuilder()
+    .setTitle('DreamIn User API') // Set the title of the API
+    .setDescription('API documentation for the DreamIn User Management service') // Set the description
+    .setVersion('1.0') // Set the version
+    // .addTag('auth') // Add tags for grouping endpoints (optional)
+    // .addBearerAuth() // If you use JWT Bearer tokens (optional)
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api-docs', app, document); // Mount Swagger UI at /api-docs
 
-  // API 버전 프리픽스 (선택사항)
-  app.setGlobalPrefix('api/v1');
+  // Get port from environment variables via ConfigService
+  const configService = app.get(ConfigService);
+  // Use the registered appConfig namespace 'app' to get the port
+  const port = configService.get<number>('app.port') || 3001; // Correctly access nested config
 
-  await app.listen(config.port);
-  console.log(`Application is running on: ${await app.getUrl()} (${config.nodeEnv} mode)`);
+  await app.listen(port);
+  console.log(`Application is running on: ${await app.getUrl()}`);
+  console.log(`Swagger documentation available at: ${await app.getUrl()}/api-docs`); // Log Swagger URL
 }
 bootstrap();

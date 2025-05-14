@@ -11,7 +11,7 @@ export enum UserRole {
  */
 export enum AuthProvider {
   GOOGLE = 'google',
-  KAKAO = 'kakao',
+  TWITTER = 'twitter',
 }
 
 /**
@@ -21,12 +21,13 @@ export interface IUser {
   id: string;
   email: string;
   name: string;
-  avatar_url?: string;
   role: UserRole;
   auth_provider: AuthProvider;
   created_at: Date;
   updated_at: Date;
   last_login: Date;
+  birth: string;
+  job: string;
 }
 
 /**
@@ -36,7 +37,6 @@ export interface IAuthResponse {
   id: string;
   email: string;
   name: string;
-  avatar_url?: string;
   role: UserRole;
   accessToken: string;
 } 
